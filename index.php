@@ -9,6 +9,7 @@
         <input name="message" type="text">
     </label> <br>
     <input type="submit" name="button" value="Войти и отправить">
+    <input type="submit" name="resetButton" value="Очистить историю">
 </form>
 
 <?php
@@ -27,9 +28,9 @@
 
     function printMessage($fileJSON)
     {
-        $jsonArray = json_decode(file_get_contents($fileJSON), false);
+        $jsonObject = json_decode(file_get_contents($fileJSON), false);
 
-        foreach ($jsonArray->messages as $user)
+        foreach ($jsonObject->messages as $user)
         {
             $Login_Date = $user->user . ' ' . $user->date;
             echo "<div style='text-align: center'>$Login_Date</div>";
@@ -37,16 +38,29 @@
         }
     }
 
+    if (isset($_POST['resetButton']))
+    {
+        $jsonObject = json_decode(file_get_contents($fileJSON), false);
+        foreach ($jsonObject->messages as $user)
+        {
+            unset($jsonObject->messages);
+        }
+        file_put_contents($fileJSON, json_encode($jsonObject));
+        unset($jsonObject);
+
+        echo "<script> document.getElementById('Message_Block').innerHTML = \"\"; </script>";
+    }
+
     if (isset($_POST['button']))
     {
-        if ($login === '' || $password === '')
-        {
+        if ($login === '' || $password === '') {
             echo "<script>alert(\"Для авторизации введите логин и пароль!\")</script>";
-        }
-        else if($message === '')
+        } else if ($message === '')
             echo "<script>alert(\"Поле для сообщения не должно быть пустым!\")</script>";
         else {
-                writeJSON($fileJSON, $login, $Date, $message);
+            writeJSON($fileJSON, $login, $Date, $message);
+            header('Location: ' . $_SERVER['HTTP_REFERER']);
+            die();
         }
     }
 ?>
@@ -54,7 +68,7 @@
 <html lang="eng">
     <body>
         <div id="Message_Block">
-            <?php printMessage($fileJSON);?>
+            <?php printMessage($fileJSON); ?>
         </div><br>
     </body>
 </html>
