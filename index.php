@@ -97,5 +97,6 @@
         margin: 0 auto;
         text-align: right;
         overflow-y: scroll;
+        overflow-x:hidden;
     }
 </style>
