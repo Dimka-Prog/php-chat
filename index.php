@@ -19,10 +19,10 @@
     $login = $_POST['login'];
     $password = $_POST['password'];
 
-    function writeJSON($fileJSON, $login, $Date, $message)
+    function writeJSON($fileJSON, $login, $Date, $message, $password)
     {
         $userMessages = json_decode(file_get_contents($fileJSON), true);
-        $userMessages['messages'][] = ['user' => $login, 'date' => $Date, 'message' => $message];
+        $userMessages['messages'][] = ['user' => $login, 'password' => $password, 'date' => $Date, 'message' => $message];
         file_put_contents($fileJSON, json_encode($userMessages));
     }
 
@@ -36,6 +36,21 @@
             echo "<div style='text-align: center'>$Login_Date</div>";
             echo "$user->message<br/><br/>";
         }
+    }
+
+    function checkUser($fileJSON, $login, $password) : bool
+    {
+        $jsonObject = json_decode(file_get_contents($fileJSON), false);
+
+        foreach ($jsonObject->messages as $user)
+        {
+            if ($login === $user->user && $password !== $user->password)
+            {
+                echo "<script> alert(\"Неверный пароль\") </script>";
+                return false;
+            }
+        }
+        return true;
     }
 
     if (isset($_POST['resetButton']))
@@ -57,8 +72,9 @@
             echo "<script>alert(\"Для авторизации введите логин и пароль!\")</script>";
         } else if ($message === '')
             echo "<script>alert(\"Поле для сообщения не должно быть пустым!\")</script>";
-        else {
-            writeJSON($fileJSON, $login, $Date, $message);
+        else if(checkUser($fileJSON, $login, $password))
+        {
+            writeJSON($fileJSON, $login, $Date, $message, $password);
             header('Location: ' . $_SERVER['HTTP_REFERER']);
             die();
         }
